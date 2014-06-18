@@ -1,0 +1,10 @@
+# Site settings
+title: Jason Lee's Homepage
+email: jasonlee.ljp@gmail.com
+description: "&copy; 2014 <br/> Hosted on GitHub.io | Powered by Jekyll"
+baseurl: ""
+url: "http://siqin.github.io"
+
+# Build settings
+markdown: kramdown
+permalink: pretty

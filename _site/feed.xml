@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jason Lee&#39;s Homepage</title>
+    <description>&amp;copy; 2014 &lt;br/&gt; Hosted on GitHub.io | Powered by Jekyll</description>
+    <link>http://siqin.github.io/</link>
+    <atom:link href="http://siqin.github.io/feed.xml" rel="self" type="application/rss+xml" />
+    
+  </channel>
+</rss>
