@@ -6,5 +6,106 @@
     <link>http://siqin.github.io/</link>
     <atom:link href="http://siqin.github.io/feed.xml" rel="self" type="application/rss+xml" />
     
+      <item>
+        <title>Basic life cycle of an iOS app</title>
+        <description>&lt;p&gt;This article is about state changes of an iOS application, and how we should respond to those changes.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Main function and delegate callbacks&lt;/li&gt;
+  &lt;li&gt;Responding to the launch&lt;/li&gt;
+  &lt;li&gt;When becomes active&lt;/li&gt;
+  &lt;li&gt;When interrupted&lt;/li&gt;
+  &lt;li&gt;Entering the background&lt;/li&gt;
+  &lt;li&gt;Returning to the foreground&lt;/li&gt;
+  &lt;li&gt;Being teminated&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;main-function-and-delegate-callbacks&quot;&gt;Main function and delegate callbacks&lt;/h2&gt;
+
+&lt;p&gt;When we create a new iOS application project, for example using the &lt;code&gt;Single View Application&lt;/code&gt; template, Xcode will create several files for us, such as main.m, AppDelegate.m and so on.&lt;br /&gt;
+In the &lt;code&gt;main.m&lt;/code&gt;, we create the very important UIApplication object and set up the main run loop, along with the app delegate to handle the state transitions:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;objc&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[])&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIApplicationMain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                 &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                 &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                 &lt;span class=&quot;n&quot;&gt;NSStringFromClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppDelegate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]));&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In an autorelease pool, the &lt;code&gt;main&lt;/code&gt; function just returns a never-return  &lt;code&gt;UIApplicationMain&lt;/code&gt; function, which does the things described above. &lt;/p&gt;
+
+&lt;p&gt;And in file &lt;code&gt;AppDelegate.m&lt;/code&gt;, the following methods are implemented to respond state changes:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;- (void)applicationWillResignActive:(UIApplication *)application&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;- (void)applicationDidEnterBackground:(UIApplication *)application&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;- (void)applicationWillEnterForeground:(UIApplication *)application&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;- (void)applicationDidBecomeActive:(UIApplication *)application&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;- (void)applicationWillTerminate:(UIApplication *)application&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;responding-to-the-launch&quot;&gt;Responding to the launch&lt;/h2&gt;
+
+&lt;p&gt;First, the app is not running, that is in the &lt;code&gt;not running&lt;/code&gt; state.&lt;br /&gt;
+When the user taps the icon to launch the app, iOS will load the app into the memory. After some UI initialization that we can ignore, &lt;code&gt;- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions&lt;/code&gt; will be called. The &lt;code&gt;launchOptions&lt;/code&gt; may contain some useful information about why the app was launched, we can check it when needed.&lt;/p&gt;
+
+&lt;p&gt;If we don’t use storyboards, we should prepare the views to display ourselves.&lt;br /&gt;
+Besides, we can do some other initialization that is critical to our app, but we should keep in mind that the launch should be as lightweight as possible, because if our app could not start handling events in 5 seconds, it will highly probably be killed by the watchdog. So, we should not do synchronous networking request or large datasets migration in &lt;code&gt;application:didFinishLaunchingWithOptions:&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;when-becomes-active&quot;&gt;When becomes active&lt;/h2&gt;
+
+&lt;p&gt;During the launch, the app’s state is still &lt;code&gt;inactive&lt;/code&gt;. When it becomes &lt;code&gt;active&lt;/code&gt;, the &lt;code&gt;applicationDidBecomeActive:&lt;/code&gt; will be called.&lt;/p&gt;
+
+&lt;p&gt;Like &lt;code&gt;viewWillAppear:&lt;/code&gt; and &lt;code&gt;viewDidAppear:&lt;/code&gt;, we should not do heavy jobs in &lt;code&gt;application:didFinishLaunchingWithOptions:&lt;/code&gt;, but place time-consuming codes in &lt;code&gt;applicationDidBecomeActive:&lt;/code&gt;, better providing a user-friendly interaction.&lt;/p&gt;
+
+&lt;p&gt;If the app becomes &lt;code&gt;active&lt;/code&gt; from &lt;code&gt;background&lt;/code&gt; or &lt;code&gt;interrupted&lt;/code&gt;, we also need to resume tasks that have been paused before.&lt;/p&gt;
+
+&lt;h2 id=&quot;when-interrupted&quot;&gt;When interrupted&lt;/h2&gt;
+
+&lt;p&gt;Our app may be interrupted on some occasions and transitioning to &lt;code&gt;inactive&lt;/code&gt; state, like locking the screen, ringing of the alarm clock, pulling down the notification center, or pulling up the control center.&lt;/p&gt;
+
+&lt;p&gt;When interrupted, the method &lt;code&gt;applicationWillResignActive&lt;/code&gt; will be called, we can disable timers or pause the game here.&lt;/p&gt;
+
+&lt;p&gt;One important thing is to be careful with files protected by the &lt;code&gt;NSFileProtectionComplete&lt;/code&gt; protection option. If the user locks the screen, we should close these files here and open them in &lt;code&gt;applicationDidBecomeActive:&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;entering-the-background&quot;&gt;Entering the background&lt;/h2&gt;
+
+&lt;p&gt;If the user presses the Home button, the app will resign &lt;code&gt;active&lt;/code&gt; state and then transitioning to &lt;code&gt;background&lt;/code&gt; state, and &lt;code&gt;applicationDidEnterBackground:&lt;/code&gt; will be called.&lt;/p&gt;
+
+&lt;p&gt;Because apps in the background may be &lt;code&gt;teminated&lt;/code&gt; without notice, we need to write the unsaved changes to the disk. However, as the same with &lt;code&gt;application:didFinishLaunchingWithOptions:&lt;/code&gt;, we only have approximately 5 seconds to do things in &lt;code&gt;applicationDidEnterBackground:&lt;/code&gt;, or our app will be killed due to being unresponsive.&lt;br /&gt;
+If 5 senconds is not enough, we can call &lt;code&gt;beginBackgroundTaskWithExpirationHandler:&lt;/code&gt; to request more time to execute long-running tasks in a secondary thread.&lt;/p&gt;
+
+&lt;p&gt;One reason, also the common reason, for being teminated in the background is the low memory, so we need to free up as much memory as we can, such as image objects and large data files on the disk.&lt;/p&gt;
+
+&lt;p&gt;The thing most likely to be ignored may be the snapshot automatically taken by the iOS. If our app contains sensitive information on current view, for example the bank account balance, we should hide it properly – presenting a gesture lock view will be good.&lt;/p&gt;
+
+&lt;h2 id=&quot;returning-to-the-foreground&quot;&gt;Returning to the foreground&lt;/h2&gt;
+
+&lt;p&gt;When returns to the foreground, our app needs to respond to changes that can affect our app’s appearance or state.&lt;/p&gt;
+
+&lt;p&gt;For instance, we were presenting a custom photo picker before entering the background. After the user pressed the Home button, he took some photos. So when our app comes to the foreground, we had better refresh our photo picker to show the newest photos.&lt;/p&gt;
+
+&lt;p&gt;Also, we should undo the changes made on entering the background in &lt;code&gt;applicationWillEnterForeground:&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;being-teminated&quot;&gt;Being teminated&lt;/h2&gt;
+
+&lt;p&gt;If the user presses the Home button twice, he can teminate the app by swiping it out (iOS 7 and later) or long pressing to delete it (earlier than iOS 7). Under this circumstance, &lt;code&gt;applicationWillTerminate:&lt;/code&gt; will be called, but this time we can not request extra execution time.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;By knowing the transitions of an iOS app, we can develop a more graceful and user-friendly app.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://developer.apple.com/library/ios/documentation/iphone/conceptual/iphoneosprogrammingguide/Introduction/Introduction.html&quot;&gt;iOS App Programming Guide&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sun, 22 Jun 2014 03:30:00 +0800</pubDate>
+        <link>http://siqin.github.io/ios.io/2014/06/22/Basic-life-cycle-of-an-ios-app/</link>
+        <guid isPermaLink="true">http://siqin.github.io/ios.io/2014/06/22/Basic-life-cycle-of-an-ios-app/</guid>
+      </item>
+    
   </channel>
 </rss>
